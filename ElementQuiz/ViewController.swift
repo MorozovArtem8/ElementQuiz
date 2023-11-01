@@ -23,7 +23,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
     var answerIsCorrect = false
     var correctAnswerCount = 0
     
-    var mode = Mode.flashCard
+    var mode = Mode.flashCard {
+        didSet{
+            updateUI()
+        }
+    }
     var state: State = .question
     let elementList = ["Carbon", "Gold", "Chlorine", "Sodium"]
     var currentElementIndex = 0
@@ -38,6 +42,16 @@ class ViewController: UIViewController, UITextFieldDelegate {
         updateUI()
         // Do any additional setup after loading the view.
     }
+    @IBAction func switchModes(_ sender: Any) {
+        
+        if modeSelector.selectedSegmentIndex == 0 {
+            mode = .flashCard
+        }else{
+            mode = .quiz
+        }
+        updateUI()
+    }
+    
     @IBAction func showAnswer(_ sender: UIButton) {
         
         state = .answer
@@ -54,11 +68,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     //  Updates the app's UI in flash card mode.
-    func updateFlashCardUI(){
-        let elementName = elementList[currentElementIndex]
+    func updateFlashCardUI(elementName: String){
+        textField.isHidden = true // скрываем текстовое поле
+        textField.resignFirstResponder() // скрываем клавиатуру
         
-        let image = UIImage(named: elementName)
-        imageView.image = image
         switch state {
         case .answer:
             answerLabel.text = elementName
@@ -67,22 +80,46 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }
         }
     // Updates the app's UI in quiz mode.
-    func updateQuizUI(){
+    func updateQuizUI(elementName: String){
+        textField.isHidden = false
+        
+        switch state{
+        case .question:
+            textField.text = ""
+            textField.becomeFirstResponder()
+        case .answer:
+            textField.resignFirstResponder()
+        }
+        
+        switch state{
+        case .question:
+            answerLabel.text = ""
+        case .answer:
+            if answerIsCorrect {
+                answerLabel.text = "Correct!"
+            }else{
+                answerLabel.text = "❌"
+            }
+        }
+        
         
     }
     
     // Updates the app's UI based on its mode and
     func updateUI(){
+        let elementName = elementList[currentElementIndex]
+        let image = UIImage(named: elementName)
+        imageView.image = image
+        
         switch mode {
         case .flashCard:
-            updateFlashCardUI()
+            updateFlashCardUI(elementName: elementName)
         case .quiz:
-            updateQuizUI()
+            updateQuizUI(elementName: elementName)
         }
     }
-    
-    func textFieldShouldReturn(_ textField:
-       UITextField) -> Bool {
+    //Runs after the user hits the Return key on the keyboard
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         // Get the text from the text field
         let textFieldContents = textField.text!
         
