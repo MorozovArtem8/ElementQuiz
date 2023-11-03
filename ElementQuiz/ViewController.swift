@@ -15,6 +15,7 @@ enum Mode {
 enum State {
     case question
     case answer
+    case score
 }
 
 class ViewController: UIViewController, UITextFieldDelegate {
@@ -25,6 +26,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     var mode = Mode.flashCard {
         didSet{
+            switch mode{
+            case .flashCard:
+                setupFlashCards()
+            case .quiz:
+                setupdQuiz()
+            }
             updateUI()
         }
     }
@@ -62,6 +69,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
         currentElementIndex += 1
         if currentElementIndex >= elementList.count {
             currentElementIndex = 0
+            if mode == .quiz {
+                state = .score
+                updateUI()
+                return
+            }
         }
         state = .question
         updateUI()
@@ -69,6 +81,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     //  Updates the app's UI in flash card mode.
     func updateFlashCardUI(elementName: String){
+        modeSelector.selectedSegmentIndex = 0
         textField.isHidden = true // скрываем текстовое поле
         textField.resignFirstResponder() // скрываем клавиатуру
         
@@ -77,10 +90,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
             answerLabel.text = elementName
         case .question:
             answerLabel.text = "?"
+        case .score:
+            return
             }
         }
     // Updates the app's UI in quiz mode.
     func updateQuizUI(elementName: String){
+        modeSelector.selectedSegmentIndex = 1
         textField.isHidden = false
         
         switch state{
@@ -89,7 +105,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
             textField.becomeFirstResponder()
         case .answer:
             textField.resignFirstResponder()
+        case .score:
+            textField.isHidden = true
+            textField.resignFirstResponder()
         }
+    
         
         switch state{
         case .question:
@@ -100,8 +120,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }else{
                 answerLabel.text = "❌"
             }
+        case .score:
+            answerLabel.text = ""
+            //print("У вас \(correctAnswerCount) очков из \(elementList.count)")
         }
-        
+        if state == .score {
+            displayScoreAlert()
+        }
         
     }
     
@@ -110,7 +135,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let elementName = elementList[currentElementIndex]
         let image = UIImage(named: elementName)
         imageView.image = image
-        
         switch mode {
         case .flashCard:
             updateFlashCardUI(elementName: elementName)
@@ -118,26 +142,43 @@ class ViewController: UIViewController, UITextFieldDelegate {
             updateQuizUI(elementName: elementName)
         }
     }
-    //Runs after the user hits the Return key on the keyboard
+   
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        // Get the text from the text field
         let textFieldContents = textField.text!
-        
-        // Determine whether the user answered correctly and update appropriate quiz
-        // state
         if textFieldContents.lowercased() == elementList[currentElementIndex].lowercased() {
             answerIsCorrect = true
             correctAnswerCount += 1
         } else {
             answerIsCorrect = false
         }
-        
-        // The app should now display the answer to the user
         state = .answer
-        
         updateUI()
-        
         return true
+    }
+    
+    func displayScoreAlert() {
+        let alert = UIAlertController(title: "Quiz Score", message: "Твои очки \(correctAnswerCount) из \(elementList.count)", preferredStyle: .alert)
+        
+        let dismissAction = UIAlertAction(title: "OK", style: .default, handler: scoreAlertDismissed(_:))
+        
+        alert.addAction(dismissAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func scoreAlertDismissed(_ action: UIAlertAction) {
+        mode = .flashCard
+    }
+    
+    func setupFlashCards(){
+        state = .question
+        currentElementIndex = 0
+    }
+    func setupdQuiz(){
+        state = .question
+        currentElementIndex = 0
+        answerIsCorrect = false
+        correctAnswerCount = 0
     }
 
 }
