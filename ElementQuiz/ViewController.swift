@@ -31,6 +31,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 setupFlashCards()
             case .quiz:
                 setupdQuiz()
+                
             }
             updateUI()
         }
@@ -43,6 +44,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var answerLabel: UILabel!
     @IBOutlet weak var modeSelector: UISegmentedControl!
     @IBOutlet weak var textField: UITextField!
+    @IBOutlet weak var showAnswerButton: UIButton!
+    @IBOutlet weak var nextButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,7 +84,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     //  Updates the app's UI in flash card mode.
     func updateFlashCardUI(elementName: String){
+        //Buttons
+        showAnswerButton.isHidden = false
+        nextButton.isEnabled = true
+        nextButton.setTitle("Next Element", for: .normal)
+        
         modeSelector.selectedSegmentIndex = 0
+        //Text Field
         textField.isHidden = true // скрываем текстовое поле
         textField.resignFirstResponder() // скрываем клавиатуру
         
@@ -96,14 +105,32 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
     // Updates the app's UI in quiz mode.
     func updateQuizUI(elementName: String){
-        modeSelector.selectedSegmentIndex = 1
-        textField.isHidden = false
+        //Buttons
+        showAnswerButton.isHidden = true
+        if currentElementIndex == elementList.count - 1 {
+            nextButton.setTitle("Show score", for: .normal)
+        }else{
+            nextButton.setTitle("Next Question", for: .normal)
+        }
+        switch state {
+        case .question:
+            nextButton.isEnabled = false
+        case .answer:
+            nextButton.isEnabled = true
+        case .score:
+            nextButton.isEnabled = false
+        }
         
+        modeSelector.selectedSegmentIndex = 1
+        //TextField
+        textField.isHidden = false
         switch state{
         case .question:
+            textField.isEnabled = true
             textField.text = ""
             textField.becomeFirstResponder()
         case .answer:
+            textField.isEnabled = false
             textField.resignFirstResponder()
         case .score:
             textField.isHidden = true
