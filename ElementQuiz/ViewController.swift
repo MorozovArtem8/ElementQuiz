@@ -37,7 +37,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
     }
     var state: State = .question
-    let elementList = ["Carbon", "Gold", "Chlorine", "Sodium"]
+    let fixedElementList = ["Carbon", "Gold", "Chlorine", "Sodium"]
+    var elementList: [String] = []
     var currentElementIndex = 0
     
     @IBOutlet weak var imageView: UIImageView!
@@ -49,7 +50,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        updateUI()
+        mode = .flashCard
         // Do any additional setup after loading the view.
     }
     @IBAction func switchModes(_ sender: Any) {
@@ -137,7 +138,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             textField.resignFirstResponder()
         }
     
-        
+        //Answer label
         switch state{
         case .question:
             answerLabel.text = ""
@@ -145,7 +146,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             if answerIsCorrect {
                 answerLabel.text = "Correct!"
             }else{
-                answerLabel.text = "❌"
+                answerLabel.text = "❌\nCorrect Answer: " + elementName
             }
         case .score:
             answerLabel.text = ""
@@ -198,6 +199,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     func setupFlashCards(){
+        elementList = fixedElementList
         state = .question
         currentElementIndex = 0
     }
@@ -206,6 +208,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         currentElementIndex = 0
         answerIsCorrect = false
         correctAnswerCount = 0
+        elementList = fixedElementList.shuffled()
     }
 
 }
